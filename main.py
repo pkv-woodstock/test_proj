@@ -1,8 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for
+from functools import wraps
+
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import mysql.connector
 import csv
 
 app = Flask(__name__)
+app.secret_key = 'my secret key'
 
 # Configure MySQL database
 db_config = {
@@ -18,6 +21,15 @@ def get_db_connection():
     conn = mysql.connector.connect(**db_config)
     return conn
 
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            flash('Please login')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/')
 def index():
@@ -45,17 +57,35 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM user WHERE Username = %s AND Password = %s", (username, password))
-        result = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        if result:
-            return "Login success"
+        user = cursor.fetchone()
+
+        if user:
+            session['username'] = user[0]
+            session['user_type'] = user[2]
+            return redirect(url_for('student'))
         else:
-            return "Invalid login"
+            flash('Invalid username or password')
+            return render_template('login.html')
+
     return render_template('login.html')
+    # if request.method == 'POST':
+    #     username = request.form['username']
+    #     password = request.form['password']
+    #     conn = get_db_connection()
+    #     cursor = conn.cursor()
+    #     cursor.execute("SELECT * FROM user WHERE Username = %s AND Password = %s", (username, password))
+    #     result = cursor.fetchone()
+    #     cursor.close()
+    #     conn.close()
+    #     if result:
+    #         return "Login success"
+    #     else:
+    #         return "Invalid login"
+    # return render_template('login.html')
 
 
 @app.route('/student', methods=['GET'])
@@ -66,7 +96,7 @@ def student():
     students = cursor.fetchall()
     cursor.close()
     conn.close()
-    return render_template('student.html', students=students)
+    return render_template('student_table.html', students=students)
 
 
 @app.route('/insert_student', methods=['GET', 'POST'])
@@ -115,6 +145,16 @@ def insert_gpa():
     return render_template('insert_gpa.html')
 
 
+@app.route('/company')
+def company():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM company")
+    companies = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template('company_table.html', companies=companies)
+
 @app.route('/export_students/<int:year>', methods=['GET'])
 def export_students(year):
     conn = get_db_connection()
@@ -134,7 +174,7 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
-
+#############################################################
 
 # from flask import Flask, render_template
 # import mysql.connector

@@ -7,7 +7,7 @@
           class="h1 mb-3 fw-normal"
           style="font-size: 2em; color: #337ab7; font-weight: bold"
         >
-          TaskForge
+          Placement Management System
         </h1>
         <h2 class="h4 mb-3 fw-normal">Please Login</h2>
         {% with messages = get_flashed_messages() %}
@@ -18,15 +18,15 @@
           {% endif %}
         {% endwith %}
         <div class="form-floating">
-          <input
-                  name="email"
-            type="email"
+    <input
+            name="username"
+            type="text"
             class="form-control"
             id="floatingInput"
-            placeholder="name@example.com"
+            placeholder="Username"
           />
-          <label for="floatingInput">Email address</label>
-        </div>
+    <label for="floatingInput">Username</label>
+  </div>
         <div class="form-floating">
           <input
                   name="password"
