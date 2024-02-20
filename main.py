@@ -21,7 +21,7 @@ def get_db_connection():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('first.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
